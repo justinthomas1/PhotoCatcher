@@ -7,41 +7,18 @@ public class PhotoCatcher{
 	private static String[] listOfPictureFiletypes = {"jpg","jpeg","png","tiff","gif","bmp"};
 	
 	public static void main(String[] args){
-		/*System.out.println("Are these two similar? Answer: " + image1.isEqualTo(image2)); */
-		
-		//Beta code - get all files in the current directory.
+		//Beta code - get all files in the current directory (and recursively the subdirectories).
 		File currentDirectory = new File(System.getProperty("user.dir"));
 		searchAllDirectories(currentDirectory);
 		
-		//Testing to see what happens when I add a different directory.
-/* 		currentDirectory = new File("F:\\Until Flash Drive Fixes (Senior)\\Spring\\Capstone");
-		searchAllDirectories(currentDirectory);
-		
-		currentDirectory = new File("F:\\Until Flash Drive Fixes (Senior)\\Spring");
-		searchAllDirectories(currentDirectory); */
-		
-		System.out.println("First checkpoint");
-		System.out.println("\n\n\nThe List:");
-		System.out.println("Size: " + listOfPictures.size());
-		for(int i=0; i<listOfPictures.size(); i++){
-			//System.out.println(listOfPictures.get(i).getWidth());
-			System.out.println(listOfPictures.get(i).getFilePath());
-		}
-		
 		clearFileDuplicates();
-		
-		System.out.println("\n\n\nThe List:");
-		System.out.println("Size: " + listOfPictures.size());
-		for(int i=0; i<listOfPictures.size(); i++){
-			System.out.println(listOfPictures.get(i).getFilePath());
-		}
 		
 		catchThePhotoDuplicates();
 		
 		System.out.println("\n\n\nThe List:");
 		System.out.println("Size: " + listOfPictures.size());
 		for(int i=0; i<listOfPictures.size(); i++){
-			System.out.println(listOfPictures.get(i).getFilePath());
+			System.out.println(listOfPictures.get(i).getFilePathAsString());
 		}
 	}
 	
@@ -55,8 +32,6 @@ public class PhotoCatcher{
 				String filetype = stringToFileType(filepath);
 				boolean isAnImage = false;
 				
-				System.out.println("Filepath: " + filepath);
-				
 				//Verify that the file extension is one of the listed extensions for the class.
 				for(int j=0; j<listOfPictureFiletypes.length; j++){
 					if(filetype.toLowerCase().equals(listOfPictureFiletypes[j])){
@@ -67,17 +42,10 @@ public class PhotoCatcher{
 				
 				//If it is an image, proceed with adding it to the list.
 				if(isAnImage){
-					System.out.println("File " + filepath + " is an image.");
 					listOfPictures.add(new Picture(filepath));
-					System.out.println(listOfPictures.get(0).getFilename());
-					System.out.println(listOfPictures.size());
-					
-					//System.out.println(filenameWithoutFiletype);
-					System.out.println("File: " + listOfFiles[i].getName());
 				}
 		  }
 		  else if(listOfFiles[i].isDirectory()){
-				System.out.println("-----------------Directory: " + listOfFiles[i].getName() + "---------------------------");
 				searchAllDirectories(new File(listOfFiles[i].getAbsolutePath().toString()));
 		  }
 		}
@@ -95,9 +63,9 @@ public class PhotoCatcher{
 		//This is not killing off the duplicate files. This is for times when the exact same thing, path and all, is being stored.
 		//This will likely occur if the user can choose multiple directories. This ensures the same file isn't compared against itself, giving a false positive.
 		for(int i=0; i<listOfPictures.size(); i++){
-			String image1Path = listOfPictures.get(i).getFilePath();
+			String image1Path = listOfPictures.get(i).getFilePathAsString();
 			for(int j=1+i; j<listOfPictures.size(); j++){
-				String image2Path = listOfPictures.get(j).getFilePath();
+				String image2Path = listOfPictures.get(j).getFilePathAsString();
 				
 				if(image1Path.equals(image2Path)){
 					//Removes the element from the arraylist, then decrements the j value (that way we won't skip over an arraylist element).
@@ -115,8 +83,11 @@ public class PhotoCatcher{
 			for(int j=1+i; j<listOfPictures.size(); j++){
 				Picture picture2 = listOfPictures.get(j);
 				
-				if(picture1.isEqualTo(picture2, false, 1)){
+				if(picture1.isEqualTo(picture2, true, 2, 15, 100, false)){
 					//Removes the element from the arraylist, then decrements the j value (that way we won't skip over an arraylist element).
+					//System.out.println("First pic: " + picture1.getFilename());
+					//System.out.println("Second pic: " + picture2.getFilename());
+					//System.out.println("Removing " + listOfPictures.get(j).getFilename());
 					listOfPictures.remove(j);
 					j--;
 				}
@@ -136,4 +107,8 @@ https://docs.oracle.com/javase/7/docs/api/java/io/File.html
 https://stackoverflow.com/questions/5694385/getting-the-filenames-of-all-files-in-a-folder
 
 https://stackoverflow.com/questions/4871051/getting-the-current-working-directory-in-java
+https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java
+https://stackoverflow.com/questions/25761438/understanding-bufferedimage-getrgb-output-values
+https://docs.oracle.com/javase/7/docs/api/java/awt/Color.html
+
 */
