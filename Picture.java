@@ -94,7 +94,7 @@ public class Picture{
 	acceptableSimilarity: The amount (1-100) that the picture should have pixels similar for the two pictures to be considered similar.
 	hardCompare: Whether to stop comparing the pictures if the two have even one dissimilar pixel. Use this if acceptableSimilarity is turned off.
 	*/
-	public boolean isEqualTo(Picture picToCompareAgainst, boolean checkSimilar, int algorithmNumber, int similarityNumber, int acceptableSimilarity, boolean hardCompare){
+	public boolean isEqualTo(Picture picToCompareAgainst, boolean checkSimilar, int algorithmNumber, int similarityNumber, double acceptableSimilarity, boolean hardCompare){
 		//First, some stress checks
 		int picOneHeight = height;
 		int picOneWidth = width;
@@ -208,8 +208,9 @@ public class Picture{
 						}
 					}
 				}
-				if(((int) ((double) similarityCount)/(double) (height*width)) >= acceptableSimilarity){
-					return true;
+				System.out.println("Here's a thing: " + this.getFilename() + " vs " + picToCompareAgainst.getFilename() + ": " +  (100 * ((int) ((double) similarityCount)/(double) (height*width))));
+				if(100 * ((int) ((double) similarityCount)/(double) (height*width)) < acceptableSimilarity){
+					return false;
 				}
 			}
 			else if(algorithmNumber==2){
@@ -261,7 +262,8 @@ public class Picture{
 					}
 					widthToDiscount+=widthAmountToDiscount;
 				}
-				if(100 * ((int) ((double) similarityCount)/(double) (height*width)) < (double) acceptableSimilarity){
+				System.out.println("Here's a thing: " + this.getFilename() + " vs " + picToCompareAgainst.getFilename() + ": " +  (100 * ((int) ((double) similarityCount)/(double) (height*width))));
+				if(100 * ((int) ((double) similarityCount)/(double) (height*width)) < acceptableSimilarity){
 					return false;
 				}
 			}
