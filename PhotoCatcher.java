@@ -3,6 +3,7 @@ import java.io.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -16,7 +17,7 @@ public class PhotoCatcher extends JPanel{
 	private static ArrayList<File> listOfDirectories;
 	
 	
-	private static JFrame jf;
+	private static JFrame mainJF;
 	private static PhotoCatcher catcher;
 	
 	private JFileChooser jfc;
@@ -40,30 +41,34 @@ public class PhotoCatcher extends JPanel{
 	private int algorithmTypeInt = 0;
 	private JComboBox<String> algorithmType;
 	
+	private JLabel rgbGraceValueLabel;
 	private JSlider rgbGraceValue;
+	private static int rgbGraceValueAmount;
+	private JLabel percentSimilarityLabel;
 	private JSlider percentSimilarity;
+	private static int percentSimilarityAmount;
 	
 	private JCheckBox hardCompare;
 	
 	public static void main(String[] args){
 		//Set up the GUI
-		jf = new JFrame();
+		mainJF = new JFrame();
 		
 		catcher = new PhotoCatcher();
-		jf.add(catcher);
-		jf.pack();
-		jf.setSize(900,600);
-		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		jf.setTitle("Photo Catcher");
-		jf.setLocationRelativeTo(null);
-		jf.setVisible(true);
+		mainJF.add(catcher);
+		mainJF.pack();
+		mainJF.setSize(900,600);
+		mainJF.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		mainJF.setTitle("Photo Catcher");
+		mainJF.setLocationRelativeTo(null);
+		mainJF.setVisible(true);
 	}
 	
 	public PhotoCatcher(){
 		//At some point, set the icon?
 		/* try{			
 			Image image= new ImageIcon(getClass().getResource("/resources/Icon.png")).getImage();
-			jf.setIconImage(image);
+			mainJF.setIconImage(image);
 		}
 		catch(Exception e){
 			
@@ -90,16 +95,19 @@ public class PhotoCatcher extends JPanel{
 		sideBar.add(addDirButton, sideBarConstraints);
 		
 		//Directories list created and added to side bar below the button.
-		dirList= new JTextArea("No directories selected.");
+		dirList= new JTextArea("No directories selected.", 12, 10);
 		dirList.setEditable(false);
-		sideBarConstraints.fill = GridBagConstraints.BOTH;
+		dirList.setLineWrap(true);
+		dirList.setWrapStyleWord(true);
+		JScrollPane scrollPane = new JScrollPane(dirList);
+		sideBarConstraints.fill = GridBagConstraints.VERTICAL;
 		sideBarConstraints.ipady = 40;      //make this component tall
 		sideBarConstraints.ipadx = 70;
 		sideBarConstraints.weighty = 10.0; //Makes sure it takes up as much vertical free space as possible.
 		sideBarConstraints.gridheight = 4;
 		sideBarConstraints.gridx = 0;
 		sideBarConstraints.gridy = 1;
-		sideBar.add(dirList, sideBarConstraints);
+		sideBar.add(scrollPane, sideBarConstraints);
 		
 		
 		//Creates the JPanel for the settings.
@@ -186,22 +194,23 @@ public class PhotoCatcher extends JPanel{
 		toggleSettingPanel.add(new JLabel("Search Type"));
 		searchType = new JComboBox<>(searchTypeStrings);
 		ChangeSearchType changeSearchType = new ChangeSearchType();
-		searchType.addChangeListener(changeSearchType);
+		searchType.addItemListener(changeSearchType);
 		toggleSettingPanel.add(searchType);
 		
 		toggleSettingPanel.add(new JLabel("Algorithm"));
 		algorithmType = new JComboBox<>(algorithmTypeOptions[algorithmTypeInt]);
 		toggleSettingPanel.add(algorithmType);
 		
-		toggleSettingPanel.add(new JLabel("RGB Grace Value: 30"));
+		rgbGraceValueLabel = new JLabel("RGB Grace Value: 30");
+		toggleSettingPanel.add(rgbGraceValueLabel);
 		rgbGraceValue = new JSlider(JSlider.HORIZONTAL, 0, 255, 30);
-		//rgbGraceValue.addChangeListener();
+		rgbGraceValue.addChangeListener(new RGBGraceValueChange());
 		toggleSettingPanel.add(rgbGraceValue);
 		
-		
-		toggleSettingPanel.add(new JLabel("Percent Similarity for Match: 60%"));
+		percentSimilarityLabel = new JLabel("Percent Similarity for Match: 60%");
+		toggleSettingPanel.add(percentSimilarityLabel);
 		percentSimilarity = new JSlider(JSlider.HORIZONTAL, 0, 100, 60);
-		//percentSimilarity.addChangeListener();
+		percentSimilarity.addChangeListener(new PercentSimilarityValueChange());
 		toggleSettingPanel.add(percentSimilarity);
 		
 		hardCompare = new JCheckBox("Hard Compare");
@@ -233,26 +242,13 @@ public class PhotoCatcher extends JPanel{
 		add(startButton, BorderLayout.SOUTH);
 		
 		listOfDirectories = new ArrayList<File>();
+		jfc = new JFileChooser();
 		
 		updateExtensions();
 		updateDirectories();
 	}
 	
 	public static void searchAndUpdate(){
-		
-		/* try{
-			//File directory = new File(System.getProperty("user.dir"));
-			//listOfDirectories.append(directory);
-		}
-		catch(Error e){
-			
-		} */
-		
-		
-		
-		
-		
-		//File currentDirectory = new File(System.getProperty("user.dir"));
 		for(int i=0; i<listOfDirectories.size(); i++){
 			searchAllDirectories(listOfDirectories.get(i));
 		}
@@ -328,7 +324,7 @@ public class PhotoCatcher extends JPanel{
 			for(int j=1+i; j<listOfPictures.size(); j++){
 				Picture picture2 = listOfPictures.get(j);
 				
-				if(picture1.isEqualTo(picture2, true, 2, 15, 50.0, false)){
+				if(picture1.isEqualTo(picture2, true, 2, rgbGraceValueAmount, (double) percentSimilarityAmount, false)){
 					//Removes the element from the arraylist, then decrements the j value (that way we won't skip over an arraylist element).
 					//System.out.println("First pic: " + picture1.getFilename());
 					//System.out.println("Second pic: " + picture2.getFilename());
@@ -351,7 +347,9 @@ public class PhotoCatcher extends JPanel{
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			try{
-				//Start the algorithm!
+				mainJF.setVisible(false);
+				//Do stuff
+				mainJF.setVisible(true);
 			}
 			catch(Exception ex){
 				
@@ -420,14 +418,44 @@ public class PhotoCatcher extends JPanel{
 		dirList.append(output);
 	}
 	
-	//TODO: Make this happen!
 	private class AddDirectoryListener implements ActionListener{
 		
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			try{
-				//JFC for this one. See PowerPointKnockOff.
-				//Make sure not to accept a non-directory!
+				//Open filechooser here.
+				jfc.setSelectedFile(null);
+				jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				jfc.setCurrentDirectory(new File(System.getProperty("user.dir")));
+				int result = jfc.showOpenDialog(PhotoCatcher.this);
+				
+				if(result==JFileChooser.APPROVE_OPTION){
+					File directory = jfc.getSelectedFile();
+					if(directory!=null){
+						listOfDirectories.add(directory);
+					}	
+				}
+				
+				catcher.requestFocusInWindow();
+			}
+			catch(Exception ex){
+				
+			}
+			
+			updateDirectories();
+		}
+		
+	}
+	
+	private class ChangeSearchType implements ItemListener{
+		
+		@Override
+		public void itemStateChanged(ItemEvent e) {
+			try{
+				algorithmTypeInt = searchType.getSelectedIndex();
+				
+				DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(algorithmTypeOptions[algorithmTypeInt]);
+				algorithmType.setModel(model);
 			}
 			catch(Exception ex){
 				
@@ -436,18 +464,28 @@ public class PhotoCatcher extends JPanel{
 		
 	}
 	
-	//TODO: Make this happen! It's for the dropdown changing.
-	private class ChangeSearchType implements ChangeListener{
+	private class RGBGraceValueChange implements ChangeListener{
 		
 		@Override
 		public void stateChanged(ChangeEvent e) {
-			try{
-				algorithmTypeInt = searchType.getSelectedIndex();
-				algorithmType = new JComboBox<>(algorithmTypeOptions[algorithmTypeInt]);
-			}
-			catch(Exception ex){
-				
-			}
+			JSlider source = (JSlider)e.getSource();
+			rgbGraceValueAmount = (int) source.getValue();
+			
+			
+			rgbGraceValueLabel.setText("RGB Grace Value: " + rgbGraceValueAmount);
+		}
+		
+	}
+	
+	private class PercentSimilarityValueChange implements ChangeListener{
+		
+		@Override
+		public void stateChanged(ChangeEvent e) {
+			JSlider source = (JSlider)e.getSource();
+			percentSimilarityAmount = (int) source.getValue();
+			
+			
+			percentSimilarityLabel.setText("Percent Similarity for Match: " + percentSimilarityAmount + "%");
 		}
 		
 	}
@@ -477,4 +515,10 @@ https://docs.oracle.com/javase/tutorial/uiswing/components/slider.html
 https://stackoverflow.com/questions/18162985/found-raw-type-jcombobox
 https://docs.oracle.com/javase/tutorial/uiswing/components/button.html
 https://docs.oracle.com/javase/7/docs/api/javax/swing/event/ChangeListener.html
+https://stackoverflow.com/questions/58939/jcombobox-selection-change-listener
+https://stackoverflow.com/questions/4620295/dynamically-change-jcombobox
+https://stackoverflow.com/questions/30402922/how-to-make-a-changelistener-with-a-jslider-to-control-volume
+https://www.youtube.com/watch?time_continue=377&v=XXkq73u9Uqg
+https://stackoverflow.com/questions/19201605/stop-jtextarea-from-expanding
+https://stackoverflow.com/questions/21534515/jfilechooser-open-in-current-directory
 */
