@@ -19,6 +19,7 @@ public class PhotoCatcher extends JPanel{
 	
 	private static JFrame mainJF;
 	private static PhotoCatcher catcher;
+	private static PhotoCatcherDecisionThing decisionThing;
 	
 	private JFileChooser jfc;
 	
@@ -34,11 +35,13 @@ public class PhotoCatcher extends JPanel{
 	
 	private String[] searchTypeStrings = {"Duplicates","Similar"};
 	private JComboBox<String> searchType;
+	private static int searchTypeInt = 0;
+	private static boolean searchTypeBoolean = false;
 	
 	private String[] algorithmTypeStringsDuplicates = {"Full Picture","Half Picture","Filehash"};
 	private String[] algorithmTypeStringsSimilar = {"Full Picture","Half Picture"};
 	private String[][] algorithmTypeOptions = {algorithmTypeStringsDuplicates, algorithmTypeStringsSimilar};
-	private int algorithmTypeInt = 0;
+	private static int algorithmTypeInt = 0;
 	private JComboBox<String> algorithmType;
 	
 	private JLabel rgbGraceValueLabel;
@@ -193,12 +196,12 @@ public class PhotoCatcher extends JPanel{
 		//Create the toggle settings JPanel
 		toggleSettingPanel.add(new JLabel("Search Type"));
 		searchType = new JComboBox<>(searchTypeStrings);
-		ChangeSearchType changeSearchType = new ChangeSearchType();
-		searchType.addItemListener(changeSearchType);
+		searchType.addItemListener(new ChangeSearchType());
 		toggleSettingPanel.add(searchType);
 		
 		toggleSettingPanel.add(new JLabel("Algorithm"));
 		algorithmType = new JComboBox<>(algorithmTypeOptions[algorithmTypeInt]);
+		algorithmType.addItemListener(new ChangeAlgorithmType());
 		toggleSettingPanel.add(algorithmType);
 		
 		rgbGraceValueLabel = new JLabel("RGB Grace Value: 30");
@@ -260,7 +263,6 @@ public class PhotoCatcher extends JPanel{
 		for(int i=0; i<listOfPictures.size(); i++){
 			listOfPicturesAsString += (listOfPictures.get(i).getFilePathAsString() + "\n");
 		}
-		System.out.println(listOfPicturesAsString);
 	}
 	
 	public static void searchAllDirectories(File directoryPath){
@@ -324,11 +326,8 @@ public class PhotoCatcher extends JPanel{
 			for(int j=1+i; j<listOfPictures.size(); j++){
 				Picture picture2 = listOfPictures.get(j);
 				
-				if(picture1.isEqualTo(picture2, true, 2, rgbGraceValueAmount, (double) percentSimilarityAmount, false)){
+				if(picture1.isEqualTo(picture2, searchTypeBoolean, algorithmTypeInt, rgbGraceValueAmount, (double) percentSimilarityAmount, false)){
 					//Removes the element from the arraylist, then decrements the j value (that way we won't skip over an arraylist element).
-					//System.out.println("First pic: " + picture1.getFilename());
-					//System.out.println("Second pic: " + picture2.getFilename());
-					//System.out.println("Removing " + listOfPictures.get(j).getFilename());
 					listOfPictures.remove(j);
 					j--;
 				}
@@ -348,8 +347,19 @@ public class PhotoCatcher extends JPanel{
 		public void actionPerformed(ActionEvent arg0) {
 			try{
 				mainJF.setVisible(false);
-				//Do stuff
-				mainJF.setVisible(true);
+				
+					JFrame photoCatchingJF = new JFrame();
+								
+					decisionThing = new PhotoCatcherDecisionThing();
+					photoCatchingJF.add(decisionThing);
+					photoCatchingJF.pack();
+					photoCatchingJF.setSize(900,600);
+					photoCatchingJF.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+					photoCatchingJF.setTitle("Photo Catcher");
+					photoCatchingJF.setLocationRelativeTo(null);
+					photoCatchingJF.setVisible(true);
+				
+				//mainJF.setVisible(true);
 			}
 			catch(Exception ex){
 				
@@ -424,16 +434,16 @@ public class PhotoCatcher extends JPanel{
 		public void actionPerformed(ActionEvent arg0) {
 			try{
 				//Open filechooser here.
-				jfc.setSelectedFile(null);
 				jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				jfc.setCurrentDirectory(new File(System.getProperty("user.dir")));
+				jfc.setSelectedFile(null);
 				int result = jfc.showOpenDialog(PhotoCatcher.this);
 				
 				if(result==JFileChooser.APPROVE_OPTION){
 					File directory = jfc.getSelectedFile();
 					if(directory!=null){
 						listOfDirectories.add(directory);
-					}	
+					}
 				}
 				
 				catcher.requestFocusInWindow();
@@ -452,10 +462,33 @@ public class PhotoCatcher extends JPanel{
 		@Override
 		public void itemStateChanged(ItemEvent e) {
 			try{
-				algorithmTypeInt = searchType.getSelectedIndex();
+				searchTypeInt = searchType.getSelectedIndex();
 				
-				DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(algorithmTypeOptions[algorithmTypeInt]);
+				DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(algorithmTypeOptions[searchTypeInt]);
 				algorithmType.setModel(model);
+				
+				algorithmTypeInt = algorithmType.getSelectedIndex();
+				
+				if(searchTypeInt==0){
+					searchTypeBoolean=false;
+				}
+				if(searchTypeInt==1){
+					searchTypeBoolean=true;
+				}
+			}
+			catch(Exception ex){
+				
+			}
+		}
+		
+	}
+	
+	private class ChangeAlgorithmType implements ItemListener{
+		
+		@Override
+		public void itemStateChanged(ItemEvent e) {
+			try{
+				algorithmTypeInt = algorithmType.getSelectedIndex();
 			}
 			catch(Exception ex){
 				
