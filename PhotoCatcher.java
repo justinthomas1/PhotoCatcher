@@ -257,12 +257,8 @@ public class PhotoCatcher extends JPanel{
 		}
 		
 		clearFileDuplicates();
-		catchThePhotoDuplicates();
 		
-		String listOfPicturesAsString = "";
-		for(int i=0; i<listOfPictures.size(); i++){
-			listOfPicturesAsString += (listOfPictures.get(i).getFilePathAsString() + "\n");
-		}
+		//Something else here.
 	}
 	
 	public static void searchAllDirectories(File directoryPath){
@@ -319,22 +315,6 @@ public class PhotoCatcher extends JPanel{
 		}
 	}
 	
-	public static void catchThePhotoDuplicates(){
-		//Important: This is the actual code for comparing the different files to each other.
-		for(int i=0; i<listOfPictures.size(); i++){
-			Picture picture1 = listOfPictures.get(i);
-			for(int j=1+i; j<listOfPictures.size(); j++){
-				Picture picture2 = listOfPictures.get(j);
-				
-				if(picture1.isEqualTo(picture2, searchTypeBoolean, algorithmTypeInt, rgbGraceValueAmount, (double) percentSimilarityAmount, false)){
-					//Removes the element from the arraylist, then decrements the j value (that way we won't skip over an arraylist element).
-					listOfPictures.remove(j);
-					j--;
-				}
-			}
-		}
-	}
-	
 	
 	
 	
@@ -345,15 +325,20 @@ public class PhotoCatcher extends JPanel{
 		
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
+			searchAndUpdate();
+			
 			try{
 				mainJF.setVisible(false);
-				
+					
 					JFrame photoCatchingJF = new JFrame();
-								
-					decisionThing = new PhotoCatcherDecisionThing();
+					
+					int width = 900;
+					int height = 600;
+					
+					decisionThing = new PhotoCatcherDecisionThing(width, height, listOfPictures, searchTypeBoolean, algorithmTypeInt, rgbGraceValueAmount, (double) percentSimilarityAmount, hardCompare.isSelected());
 					photoCatchingJF.add(decisionThing);
 					photoCatchingJF.pack();
-					photoCatchingJF.setSize(900,600);
+					photoCatchingJF.setSize(width,height);
 					photoCatchingJF.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 					photoCatchingJF.setTitle("Photo Catcher");
 					photoCatchingJF.setLocationRelativeTo(null);
@@ -554,4 +539,5 @@ https://stackoverflow.com/questions/30402922/how-to-make-a-changelistener-with-a
 https://www.youtube.com/watch?time_continue=377&v=XXkq73u9Uqg
 https://stackoverflow.com/questions/19201605/stop-jtextarea-from-expanding
 https://stackoverflow.com/questions/21534515/jfilechooser-open-in-current-directory
+https://stackoverflow.com/questions/16343098/resize-a-picture-to-fit-a-jlabel
 */

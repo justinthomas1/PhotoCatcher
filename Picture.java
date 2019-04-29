@@ -28,7 +28,7 @@ public class Picture{
 			width = image.getWidth();
 			filename = file.getName();
 			
-			System.out.println("File " + filename + " found.");
+			//System.out.println("File " + filename + " found.");
 		}
 		catch(Exception e){
 			System.out.println("Error: Image at " + filepath + " couldn't be opened.");
