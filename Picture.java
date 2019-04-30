@@ -17,6 +17,7 @@ public class Picture{
 	private int width;
 	private int height;
 	private String filename;
+	private String filepath;
 	
 	//public static void main(String[] args){
 	public Picture(String filepath){
@@ -27,6 +28,7 @@ public class Picture{
 			height = image.getHeight();
 			width = image.getWidth();
 			filename = file.getName();
+			this.filepath = filepath;
 			
 			//System.out.println("File " + filename + " found.");
 		}
@@ -45,6 +47,10 @@ public class Picture{
 	
 	public String getFilename(){
 		return filename;
+	}
+	
+	public String getFilepath(){
+		return filepath;
 	}
 	
 	public BufferedImage getImage(){
@@ -118,16 +124,15 @@ public class Picture{
 		} */
 		
 		//Three different algorithms.
-		//1. Check every pixel.
-		//2. Check half the pixels.
-		//3. Check file hashes.
+		//0. Check every pixel.
+		//1. Check half the pixels.
+		//2. Check file hashes.
 		
 		BufferedImage imageOne = image;
 		BufferedImage imageTwo = picToCompareAgainst.getImage();
 		
-		
 		if(!checkSimilar){
-			if(algorithmNumber==1){
+			if(algorithmNumber==0){
 				//Check every pixel (least efficient but most accurate)
 				for(int i=0; i<width; i++){
 					for(int j=0; j<height; j++){
@@ -137,7 +142,7 @@ public class Picture{
 					}
 				}
 			}
-			else if(algorithmNumber==2){
+			else if(algorithmNumber==1){
 				//Check half the pixels (less accurate but more efficient)
 				
 				//The for loop will essentially not scan a certain amount of pixels,
@@ -158,14 +163,14 @@ public class Picture{
 					widthToDiscount+=widthAmountToDiscount;
 				}
 			}
-			else if(algorithmNumber==3){
+			else if(algorithmNumber==2){
 				//Check file hashes
 				return this.getMD5Hash().equals(picToCompareAgainst.getMD5Hash());
 			}
 		}
 		//Now do the same but for similar files!
 		else{
-			if(algorithmNumber==1){
+			if(algorithmNumber==0){
 				//Check every pixel (least efficient but most accurate)
 				int similarityCount = height*width;
 				for(int i=0; i<width; i++){
@@ -209,11 +214,11 @@ public class Picture{
 					}
 				}
 				System.out.println("Here's a thing: " + this.getFilename() + " vs " + picToCompareAgainst.getFilename() + ": " +  (100 * ((int) ((double) similarityCount)/(double) (height*width))));
-				if(100 * ((int) ((double) similarityCount)/(double) (height*width)) < acceptableSimilarity){
+				if((100 * ((int) ((double) similarityCount)/(double) (height*width))) < acceptableSimilarity){
 					return false;
 				}
 			}
-			else if(algorithmNumber==2){
+			else if(algorithmNumber==1){
 				//Check half the pixels (less accurate but more efficient). See above for a better explanation.
 				int similarityCount = height*width;
 				

@@ -46,10 +46,10 @@ public class PhotoCatcher extends JPanel{
 	
 	private JLabel rgbGraceValueLabel;
 	private JSlider rgbGraceValue;
-	private static int rgbGraceValueAmount;
+	private static int rgbGraceValueAmount=30;
 	private JLabel percentSimilarityLabel;
 	private JSlider percentSimilarity;
-	private static int percentSimilarityAmount;
+	private static int percentSimilarityAmount=60;
 	
 	private JCheckBox hardCompare;
 	
@@ -320,34 +320,43 @@ public class PhotoCatcher extends JPanel{
 	
 	
 	//Action listeners unite!
-	//TODO: Make this happen!
 	private class StartListener implements ActionListener{
 		
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			searchAndUpdate();
 			
-			try{
-				mainJF.setVisible(false);
-					
+			if(listOfDirectories.size()>0){
+				searchAndUpdate();
+			
+				try{
+					mainJF.setVisible(false);
+						
 					JFrame photoCatchingJF = new JFrame();
 					
 					int width = 900;
 					int height = 600;
 					
-					decisionThing = new PhotoCatcherDecisionThing(width, height, listOfPictures, searchTypeBoolean, algorithmTypeInt, rgbGraceValueAmount, (double) percentSimilarityAmount, hardCompare.isSelected());
-					photoCatchingJF.add(decisionThing);
-					photoCatchingJF.pack();
-					photoCatchingJF.setSize(width,height);
-					photoCatchingJF.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-					photoCatchingJF.setTitle("Photo Catcher");
-					photoCatchingJF.setLocationRelativeTo(null);
-					photoCatchingJF.setVisible(true);
-				
-				//mainJF.setVisible(true);
+					
+					SwingUtilities.invokeLater(new Runnable(){
+						public void run()
+						{
+							decisionThing = new PhotoCatcherDecisionThing(width, height, listOfPictures, searchTypeBoolean, algorithmTypeInt, rgbGraceValueAmount, (double) percentSimilarityAmount, hardCompare.isSelected());
+							photoCatchingJF.add(decisionThing);
+							photoCatchingJF.pack();
+							photoCatchingJF.setSize(width,height);
+							photoCatchingJF.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+							photoCatchingJF.setTitle("Photo Catcher");
+							photoCatchingJF.setLocationRelativeTo(null);
+							photoCatchingJF.setVisible(true);
+						}
+					});
+				}
+				catch(Exception ex){
+					
+				}
 			}
-			catch(Exception ex){
-				
+			else{
+				JOptionPane.showMessageDialog(new JFrame(),("Please add at least one directory first!"));
 			}
 		}
 		
@@ -540,4 +549,6 @@ https://www.youtube.com/watch?time_continue=377&v=XXkq73u9Uqg
 https://stackoverflow.com/questions/19201605/stop-jtextarea-from-expanding
 https://stackoverflow.com/questions/21534515/jfilechooser-open-in-current-directory
 https://stackoverflow.com/questions/16343098/resize-a-picture-to-fit-a-jlabel
+https://stackoverflow.com/questions/5472868/how-to-pause-program-until-a-button-press#
+http://tutorials.jenkov.com/java-internationalization/simpledateformat.html
 */
