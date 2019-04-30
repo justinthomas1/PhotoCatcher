@@ -18,6 +18,7 @@ public class PhotoCatcher extends JPanel{
 	
 	
 	private static JFrame mainJF;
+	private static Image icon;
 	private static PhotoCatcher catcher;
 	private static PhotoCatcherDecisionThing decisionThing;
 	
@@ -68,14 +69,14 @@ public class PhotoCatcher extends JPanel{
 	}
 	
 	public PhotoCatcher(){
-		//At some point, set the icon?
-		/* try{			
-			Image image= new ImageIcon(getClass().getResource("/resources/Icon.png")).getImage();
-			mainJF.setIconImage(image);
+		//At some point, set the icon
+		try{			
+			icon= new ImageIcon(getClass().getResource("Icon.png")).getImage();
+			mainJF.setIconImage(icon);
 		}
 		catch(Exception e){
 			
-		} */
+		}
 		
 		//Set the layout of the whole thing
 		setLayout(new BorderLayout());
@@ -330,8 +331,6 @@ public class PhotoCatcher extends JPanel{
 			
 				try{
 					mainJF.setVisible(false);
-						
-					JFrame photoCatchingJF = new JFrame();
 					
 					int width = 900;
 					int height = 600;
@@ -340,14 +339,7 @@ public class PhotoCatcher extends JPanel{
 					SwingUtilities.invokeLater(new Runnable(){
 						public void run()
 						{
-							decisionThing = new PhotoCatcherDecisionThing(width, height, listOfPictures, searchTypeBoolean, algorithmTypeInt, rgbGraceValueAmount, (double) percentSimilarityAmount, hardCompare.isSelected());
-							photoCatchingJF.add(decisionThing);
-							photoCatchingJF.pack();
-							photoCatchingJF.setSize(width,height);
-							photoCatchingJF.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-							photoCatchingJF.setTitle("Photo Catcher");
-							photoCatchingJF.setLocationRelativeTo(null);
-							photoCatchingJF.setVisible(true);
+							PhotoCatcherDecisionThing.instantiateJFrameAndStuffInIt(width, height, listOfPictures, searchTypeBoolean, algorithmTypeInt, rgbGraceValueAmount, (double) percentSimilarityAmount, hardCompare.isSelected(), icon);
 						}
 					});
 				}

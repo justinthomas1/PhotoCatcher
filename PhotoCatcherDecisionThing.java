@@ -13,35 +13,63 @@ import java.text.SimpleDateFormat;
 
 public class PhotoCatcherDecisionThing extends JPanel{
 
-	//catchThePhotoDuplicates();
-	private int JFwidth;
-	private int JFheight;
-	private ArrayList<Picture> listOfPictures;
-	private ArrayList<String> listOfDeletedPictures;
-	private boolean searchTypeBoolean;
-	private int algorithmTypeInt;
-	private int rgbGraceValueAmount;
-	private double percentSimilarityAmount;
-	private boolean hardCompare;
+	private static JFrame jf;
+	private static int JFwidth;
+	private static int JFheight;
+	private static ArrayList<Picture> listOfPictures;
+	private static ArrayList<String> listOfDeletedPictures;
+	private static boolean searchTypeBoolean;
+	private static int algorithmTypeInt;
+	private static int rgbGraceValueAmount;
+	private static double percentSimilarityAmount;
+	private static boolean hardCompare;
 
-	private JLabel picture1Label;
-	private JLabel picture2Label;
-	private JTextArea pic1Filepath;
-	private JTextArea pic2Filepath;
+	private static JLabel picture1Label;
+	private static JLabel picture2Label;
+	private static JTextArea pic1Filepath;
+	private static JTextArea pic2Filepath;
+	private static Picture pic1OnLabel;
+	private static Picture pic2OnLabel;
 	
-	private double image1FractionNumber = 1.0;
-	private double image2FractionNumber = 1.0;
+	private static double image1FractionNumber = 1.0;
+	private static double image2FractionNumber = 1.0;
 	
-	int imageMaxWidth;
-	int imageMaxHeight;
+	private static int imageMaxWidth;
+	private static int imageMaxHeight;
 	
-	private boolean leftImageDeleteButtonPressed = false;
-	private boolean rightImageDeleteButtonPressed = false;
-	private boolean cancelButtonPressed = false;
+	private static boolean leftImageDeleteButtonPressed = false;
+	private static boolean rightImageDeleteButtonPressed = false;
+	private static boolean cancelButtonPressed = false;
 	
 	
-	private Thread thready;
+	private static Thread thready;
 	
+	
+	public static void instantiateJFrameAndStuffInIt(int JFwidth, int JFheight, ArrayList<Picture> listOfPictures, boolean searchTypeBoolean, int algorithmTypeInt, int rgbGraceValueAmount, double percentSimilarityAmount, boolean hardCompare, Image icon){
+		jf = new JFrame();
+		PhotoCatcherDecisionThing decisionThing = new PhotoCatcherDecisionThing(JFwidth, JFheight, listOfPictures, searchTypeBoolean, algorithmTypeInt, rgbGraceValueAmount, (double) percentSimilarityAmount, hardCompare);
+		jf.add(decisionThing);
+		jf.pack();
+		jf.setSize(JFwidth,JFheight);
+		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		jf.setTitle("Photo Catcher");
+		jf.setLocationRelativeTo(null);
+		jf.setVisible(true);
+		
+		//Set the icon
+		try{
+			jf.setIconImage(icon);
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		jf.addComponentListener(new ComponentAdapter() {
+			public void componentResized(ComponentEvent componentEvent) {
+				updateValuesAndPictureSizes();
+			}
+		});
+	}
 	
 	public PhotoCatcherDecisionThing(int JFwidth, int JFheight, ArrayList<Picture> listOfPictures, boolean searchTypeBoolean, int algorithmTypeInt, int rgbGraceValueAmount, double percentSimilarityAmount, boolean hardCompare){
 		this.JFwidth = JFwidth;
@@ -83,7 +111,7 @@ public class PhotoCatcherDecisionThing extends JPanel{
 		
 		
 		picture2Label = new JLabel("", SwingConstants.CENTER);
-		picture2Label.setMinimumSize(new Dimension(JFwidth/3, JFheight/3));
+		picture2Label.setMinimumSize(new Dimension(imageMaxWidth, imageMaxHeight));
 		picsAndLabelsConstraints.fill = GridBagConstraints.BOTH;
 		picsAndLabelsConstraints.gridwidth = 2;
 		picsAndLabelsConstraints.gridheight = 2;
@@ -165,6 +193,7 @@ public class PhotoCatcherDecisionThing extends JPanel{
 			catchThePhotoDuplicates();
 		}
 		catch(Exception e){
+			e.printStackTrace();
 		}
 	}
 
@@ -226,6 +255,15 @@ public class PhotoCatcherDecisionThing extends JPanel{
 		
 	}
 	
+	public static void updateValuesAndPictureSizes(){
+		JFwidth = jf.getWidth();
+		JFheight = jf.getHeight();
+		
+		imageMaxWidth = JFwidth/2;
+		imageMaxHeight = JFheight/2;
+		
+		updateThePictures();
+	}
 	
 	public void catchThePhotoDuplicates(){
 		
@@ -234,13 +272,13 @@ public class PhotoCatcherDecisionThing extends JPanel{
             public void run() {
 				for(int i=0; i<listOfPictures.size(); i++){
 					//Important: This is the actual code for comparing the different files to each other.
-					Picture picture1 = listOfPictures.get(i);
+					pic1OnLabel = listOfPictures.get(i);
 					for(int j=1+i; j<listOfPictures.size(); j++){
-						Picture picture2 = listOfPictures.get(j);
+						pic2OnLabel = listOfPictures.get(j);
 						
-						if(picture1.isEqualTo(picture2, searchTypeBoolean, algorithmTypeInt, rgbGraceValueAmount, (double) percentSimilarityAmount, hardCompare)){
+						if(pic1OnLabel.isEqualTo(pic2OnLabel, searchTypeBoolean, algorithmTypeInt, rgbGraceValueAmount, (double) percentSimilarityAmount, hardCompare)){
 							
-							updateThePictures(picture1, picture2);
+							updateThePictures();
 							
 							while(!leftImageDeleteButtonPressed && !rightImageDeleteButtonPressed && !cancelButtonPressed){
 								synchronized(thready){
@@ -311,7 +349,7 @@ public class PhotoCatcherDecisionThing extends JPanel{
         thready.start();
 	}
 	
-	public void updateThePictures(Picture picture1, Picture picture2){
+	public static void updateThePictures(){
 		try{
 			//Find out how small to make the picture so it still fits in the GUI.
 			boolean imageTooBig = true;
@@ -319,8 +357,8 @@ public class PhotoCatcherDecisionThing extends JPanel{
 			image1FractionNumber = 1.0;
 			
 			while(imageTooBig){
-				if((int) ((double) picture1.getHeight()*(1/image1FractionNumber)) <= imageMaxHeight){
-					if((int) ((double) picture1.getWidth()*(1/image1FractionNumber)) <= imageMaxWidth){
+				if((int) ((double) pic1OnLabel.getHeight()*(1/image1FractionNumber)) <= imageMaxHeight){
+					if((int) ((double) pic1OnLabel.getWidth()*(1/image1FractionNumber)) <= imageMaxWidth){
 						imageTooBig = false;
 					}
 				}
@@ -333,8 +371,8 @@ public class PhotoCatcherDecisionThing extends JPanel{
 			image2FractionNumber = 1.0;
 			
 			while(imageTooBig){
-				if((int) ((double) picture2.getHeight()*(1/image2FractionNumber)) <= imageMaxHeight){
-					if((int) ((double) picture2.getWidth()*(1/image2FractionNumber)) <= imageMaxWidth){
+				if((int) ((double) pic2OnLabel.getHeight()*(1/image2FractionNumber)) <= imageMaxHeight){
+					if((int) ((double) pic2OnLabel.getWidth()*(1/image2FractionNumber)) <= imageMaxWidth){
 						imageTooBig = false;
 					}
 				}
@@ -342,15 +380,16 @@ public class PhotoCatcherDecisionThing extends JPanel{
 				image2FractionNumber+=0.1;
 			}
 			
-			Image picture1Resized = picture1.getImage().getScaledInstance((int) ((double) picture1.getWidth()*(1/image1FractionNumber)), (int) ((double) picture1.getHeight()*(1/image1FractionNumber)), Image.SCALE_SMOOTH);
-			Image picture2Resized = picture2.getImage().getScaledInstance((int) ((double) picture2.getWidth()*(1/image2FractionNumber)), (int) ((double) picture2.getHeight()*(1/image2FractionNumber)), Image.SCALE_SMOOTH);
+			Image picture1Resized = pic1OnLabel.getImage().getScaledInstance((int) ((double) pic1OnLabel.getWidth()*(1/image1FractionNumber)), (int) ((double) pic1OnLabel.getHeight()*(1/image1FractionNumber)), Image.SCALE_SMOOTH);
+			Image picture2Resized = pic2OnLabel.getImage().getScaledInstance((int) ((double) pic2OnLabel.getWidth()*(1/image2FractionNumber)), (int) ((double) pic2OnLabel.getHeight()*(1/image2FractionNumber)), Image.SCALE_SMOOTH);
 			
 			picture1Label.setIcon(new ImageIcon(picture1Resized));
 			picture2Label.setIcon(new ImageIcon(picture2Resized));
-			pic1Filepath.setText(picture1.getFilepath());
-			pic2Filepath.setText(picture2.getFilepath());
+			pic1Filepath.setText(pic1OnLabel.getFilepath());
+			pic2Filepath.setText(pic2OnLabel.getFilepath());
 		}
 		catch(Exception e){
+			e.printStackTrace();
 		}
 	}
 	
